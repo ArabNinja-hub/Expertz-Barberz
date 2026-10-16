@@ -78,3 +78,49 @@ Targeted corrections, without redesigning the concept:
 The repeatable browser review is `tests/client-review.cjs`. It requires optional external `playwright` and `@axe-core/playwright` tooling and an installed Chromium browser; these are intentionally not added to the app's dependencies. With those packages available to Node, run `node tests/client-review.cjs` against `npm run dev`. Set `CLIENT_REVIEW_URL` to test a production preview instead; `CHROMIUM_PATH` optionally selects an existing browser executable.
 
 The suite passed against both development and production preview builds at 1440×900, 1024×900, 768×1024, 390×844, 320×640, and 844×390. It covers automated WCAG A/AA checks, document overflow, loaded images, mobile navigation, modal focus restoration, enquiry states, actual clipboard contents and denied-permission fallback, all CTAs, gallery titles and dialogs, internal links, reduced motion, and runtime errors. No automated accessibility violations were detected in the tested states; this is not a certification or a substitute for testing with real assistive technology. Mobile and desktop screenshots were also reviewed. Three unit tests and the production build pass.
+
+## GitHub Pages deployment
+
+Keep **Settings → Pages → Build and deployment → Source** set to **GitHub Actions**.
+The existing `.github/workflows/deploy.yml` builds with Vite and uploads only `dist/`
+using `upload-pages-artifact` / `deploy-pages`. Do not deploy the repository root or
+run a parallel branch/Jekyll deployment: source `index.html` deliberately contains
+`/src/main.js`, which only the Vite build transforms into compiled JS and CSS.
+The `base: "/Expertz-Barberz/"` setting also rewrites public image and favicon URLs;
+the source URLs do not need to be manually prefixed.
+
+The workflow now checks the Pages source, verifies the built artifact before upload,
+and checks the actual deployed HTML and asset HTTP responses after deployment.
+Run the same checks manually:
+
+```sh
+npm ci
+npm test
+npm run build
+npm run test:production
+node scripts/verify-site.mjs https://arabninja-hub.github.io/Expertz-Barberz/
+```
+
+The verifier requires compiled JS and CSS, subpath-safe URLs, all five photographs,
+the favicon and CSS font files. Remote checks require HTTP 200 and appropriate
+HTML/JS/CSS/image content types, with retries for Pages propagation. A green
+upload/deploy alone is not proof the correct site is live.
+
+### Investigation (2026-10-16)
+
+- Vite run `38965140193` uploaded a 460,177-byte Pages artifact and deployed at
+  20:51:02 UTC. Its upload path was already `dist`.
+- A competing generated Jekyll run `38965140445` uploaded a different 311,058-byte
+  artifact and deployed at 20:51:06 UTC, after the Vite deployment. Its jobs show
+  “Build with Jekyll”, not a Vite build. This is consistent with the reported raw
+  `/src/main.js`, root favicon and image 404s.
+- The Pages API currently reports `build_type: workflow` (GitHub Actions); retain
+  that setting and deploy the Vite workflow again to replace the Jekyll output.
+- Local `dist/index.html` references `/Expertz-Barberz/assets/index-*.js` and `.css`,
+  `/Expertz-Barberz/favicon.svg` and `/Expertz-Barberz/images/*.jpg`; all exist.
+- This workspace cannot fetch the `github.io` host or artifact blob-storage host,
+  so deployed artifact contents and live HTML could not be independently read.
+  Attempts to rerun/dispatch the Vite workflow were also rejected by GitHub
+  (rerun refused; dispatch HTTP 403). No live-site fix is claimed. After these
+  changes reach `main`, the workflow's remote verification must pass; alternatively
+  an authorized maintainer can run the existing Vite workflow from Actions now.

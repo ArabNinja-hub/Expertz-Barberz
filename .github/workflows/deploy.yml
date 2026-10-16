@@ -1,4 +1,3 @@
-
 name: Deploy to GitHub Pages
 
 on:
@@ -23,6 +22,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      # A branch/Jekyll deployment can overwrite the Vite artifact with source HTML.
+      - name: Require GitHub Actions as the Pages source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test "$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq .build_type)" = workflow || {
+            echo "Set Settings > Pages > Build and deployment > Source to GitHub Actions."
+            exit 1
+          }
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -37,6 +49,9 @@ jobs:
 
       - name: Build website
         run: npm run build
+
+      - name: Verify production artifact
+        run: npm run test:production
 
       - name: Upload website
         uses: actions/upload-pages-artifact@v3
@@ -53,3 +68,16 @@ jobs:
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Checkout verification script
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Verify deployed website
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: node scripts/verify-site.mjs "$PAGE_URL"
