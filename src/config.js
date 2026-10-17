@@ -2,7 +2,7 @@
 export const business = {
   whatsappNumber: "WHATSAPP_NUMBER_TO_CONFIRM", // International digits only, no +, spaces, or leading zero.
   phone: "",
-  address: "",
+  address: "Alick Nkhata Rd, Lusaka 10101, Zambia",
   openingHours: "",
   socialLabel: "",
 };

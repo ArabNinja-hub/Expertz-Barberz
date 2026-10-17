@@ -35,7 +35,7 @@ Appointment buttons open an enquiry composer. Visitors can choose a sample servi
 - Actual services, availability, and prices (no prices invented)
 - Business-owned photographs and permissions
 - Phone and WhatsApp number
-- Physical address (no unverified map is embedded)
+- Physical address (now taken from the supplied Google Maps listing; confirm any extra arrival instructions)
 - Opening hours
 - Social profiles (currently clearly labelled, not dead links)
 
@@ -124,3 +124,15 @@ upload/deploy alone is not proof the correct site is live.
   (rerun refused; dispatch HTTP 403). No live-site fix is claimed. After these
   changes reach `main`, the workflow's remote verification must pass; alternatively
   an authorized maintainer can run the existing Vite workflow from Actions now.
+
+## Google Maps location
+
+The Contact section embeds **Expert Barberz, Alick Nkhata Rd, Lusaka 10101, Zambia**.
+The supplied link, https://maps.app.goo.gl/etmV4ZRgt74oZT4a6, resolves to Google Maps feature
+`0x19408d006a5e39f5:0x86c07772466dca73` (CID `9709892129302366835`).
+Google’s `maps?cid=9709892129302366835&output=embed` endpoint returned the
+`maps/embed?origin=mfe&pb=!1m3!3m2!1m1!4s9709892129302366835` URL used by the iframe.
+This pins the exact listing rather than searching by business name or guessing coordinates.
+No API key, new dependency, or backend is required. The responsive iframe is lazy-loaded;
+Google receives third-party requests when it loads. The Get Directions link always opens
+the original supplied short link in a new tab and remains available if the embed is blocked.

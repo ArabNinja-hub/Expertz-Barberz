@@ -1274,3 +1274,26 @@ dialog .button {
 .gallery-title {
   display: block;
 }
+
+/* Full-width, key-free Google Maps listing in the existing contact section. */
+.location-map {
+  margin-top: 38px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #25291f;
+}
+.location-map iframe {
+  display: block;
+  width: 100%;
+  height: clamp(300px, 45vw, 450px);
+  border: 0;
+}
+.location-map iframe:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: -4px;
+}
+.map-note {
+  margin-top: 12px;
+  font-size: 12px;
+}
